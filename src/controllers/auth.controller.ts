@@ -32,9 +32,12 @@ async function isUserExist(req: Request, res: Response) {
     console.log(error)
     res.status(400).json(error)
   })
+  console.log(customerData)
   const data = JSON.parse(JSON.stringify(customerData))
-  console.log(data)
-  data.id = data._id
+  if(data != null){
+
+    data.id = data._id
+  }
   console.log(data)
   return res.status(200).json(data)
 }
