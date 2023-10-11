@@ -19,10 +19,10 @@ mongoose
     useUnifiedTopology: true,
   })
   .then(() => {
+    console.log("Connected to Database");
     app.listen(port, () => {
       console.log("Listening on port " + port);
   });
-    console.log("Connected to Database");
   })
   .catch((er) => {
     console.log("Mongoose Connection failed Error => ", er);
