@@ -1,6 +1,10 @@
 module.exports = (mongoose, Schema) =>
 {
     const customerSchema = Schema({
+        id: {
+            type: mongoose.Schema.Types.String,
+
+        },
         googleId: {
             type: mongoose.Schema.Types.String
         },

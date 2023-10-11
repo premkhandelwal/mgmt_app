@@ -1,7 +1,8 @@
 import { Request, Response } from 'express'
+import { Model } from 'mongoose'
 
 const db = require('../models/index')
-const Customer = db.customer
+const Customer: Model<any> = db.customer
 
 async function addCustomer(req: Request, res: Response) {
   if (!req.body.googleId) {
@@ -25,16 +26,16 @@ async function addCustomer(req: Request, res: Response) {
 async function isUserExist(req: Request, res: Response) {
   const getgoogleId = req.body.googleId
   console.log(getgoogleId)
-  const customerData = await Customer.findOne({ googleId: getgoogleId }).catch(
-    (error) => {
-      console.log(error)
-      res.status(400).json(error)
-    },
-  )
-  let resData = req.body.googleId['payload']
-  console.log(resData)
-
-  return res.status(200).json(resData)
+  const customerData: Model<any> = await Customer.findOne({
+    googleId: getgoogleId,
+  }).catch((error) => {
+    console.log(error)
+    res.status(400).json(error)
+  })
+  const data = JSON.parse(JSON.stringify(customerData))
+  data.id = data._id
+  console.log(data)
+  return res.status(200).json(data)
 }
 
 async function linkRenter(req: Request, res: Response) {}
