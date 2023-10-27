@@ -97,9 +97,26 @@ async function getNotificationToken(req: Request, res: Response) {
   }
 }
 
+async function getAllUsers(req: Request, res: Response) {
+  try {
+    const customerData: Model<any>[] = await Customer.find()
+    
+    const customerListJson = JSON.parse(JSON.stringify(customerData))
+    customerListJson.forEach((customer) => {
+      customer.id = customer._id
+    })
+
+    res.status(200).json(customerListJson)
+  } catch (error) {
+    console.error(error)
+    return res.status(500).json(error)
+  }
+}
+
 export const auth = {
   addUser: addCustomer,
   isUserExist: isUserExist,
   updateNotificationToken: updateNotificationToken,
   getNotificationToken: getNotificationToken,
+  getAllUsers: getAllUsers,
 }

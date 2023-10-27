@@ -19,5 +19,6 @@ router.post(
 
 router.put('/updateNotificationToken', auth.updateNotificationToken)
 router.get('/getNotificationToken', auth.getNotificationToken)
+router.get('/getAllUsers', auth.getAllUsers)
 
 module.exports = router
