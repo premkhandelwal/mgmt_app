@@ -16,4 +16,3 @@ router.use('/addDetails', infoRoute);
 router.use('/auth', loginRoute);
 
 module.exports = router;
-export default router;
