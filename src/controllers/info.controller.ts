@@ -2,21 +2,25 @@ import { Request, Response } from 'express'
 import { Model } from 'mongoose'
 
 const db = require('../models/index')
-const Payment: Model<any> = db.payment
+const { getPaymentModelByEvent } = db.payment
 const Customer: Model<any> = db.customer
 
-async function generateUniqueId() {
-  const count = await Payment.countDocuments()
+async function generateUniqueId(paymentModel: Model<any>) {
+  const count = await paymentModel.countDocuments()
   const sixDigitId = (count + 1).toString().padStart(6, '0')
   return sixDigitId
 }
 
 async function addPayment(req: Request, res: Response) {
   try {
-    const uniqueId = await generateUniqueId()
+    const event = req.body.event || null
+    const PaymentModel = getPaymentModelByEvent(event)
+    const uniqueId = await generateUniqueId(PaymentModel)
+
     const paymentData = { ...req.body, renterLinkId: uniqueId }
-    const payment = new Payment(paymentData)
+    const payment = new PaymentModel(paymentData)
     const savedInfo = await payment.save()
+
     return res.json(savedInfo)
   } catch (error) {
     console.error('Error adding payment:', error)
@@ -25,19 +29,20 @@ async function addPayment(req: Request, res: Response) {
 }
 
 async function fetchPayments(req: Request, res: Response) {
-  
   try {
-    const Payments = await Payment.find({})
+    const event = req.query.event?.toString() || null
+    console.log(event);
+    
+    const PaymentModel = getPaymentModelByEvent(event)
+
+    const Payments = await PaymentModel.find({})
     res.status(200).json(Payments)
   } catch (error) {
     res.status(401).json(error)
   }
 }
 
-
-
 export const info = {
-  addPayment: addPayment,
-  fetchPayments: fetchPayments,
-  // addNotificationToken: addNotificationToken,
+  addPayment,
+  fetchPayments,
 }

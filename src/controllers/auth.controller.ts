@@ -1,14 +1,20 @@
 import { Request, Response } from 'express'
-import { Model, Mongoose } from 'mongoose'
+import { Mongoose } from 'mongoose'
+import { GoogleAuth } from 'google-auth-library'
+import path from 'path'
 const mongoose: Mongoose = require('mongoose')
 
 const db = require('../models/index')
-const Customer: Model<any> = db.customer
+const { getCustomerModelByEvent } = db.customer
 
 async function addCustomer(req: Request, res: Response) {
   if (!req.body.googleId) {
-    res.json({ error: 'Invalid request data' })
+    return res.status(400).json({ error: 'Invalid request data' })
   }
+
+  const event = req.body.event || null
+  const Customer = getCustomerModelByEvent(event)
+
   const customerData = {
     googleId: req.body.googleId,
     firstName: req.body.firstName,
@@ -17,59 +23,54 @@ async function addCustomer(req: Request, res: Response) {
     emailId: req.body.emailId,
     type: req.body.type,
     photoUrl: req.body.photoUrl,
-    renterLinkId: req.body.renterLinkId, //Will be passed only if type is renter
+    renterLinkId: req.body.renterLinkId, // Will be passed only if type is renter
+    event,
   }
+
   const customer = new Customer(customerData)
   const savedCustomer = await customer.save()
   return res.json(savedCustomer.id)
 }
 
 async function isUserExist(req: Request, res: Response) {
-  const getgoogleId = req.body.googleId
-  console.log(getgoogleId)
-  const customerData: Model<any> = await Customer.findOne({
-    googleId: getgoogleId,
-  }).catch((error) => {
-    console.log(error)
-    res.status(400).json(error)
-  })
-  console.log(customerData)
-  const data = JSON.parse(JSON.stringify(customerData))
-  if (data != null) {
+  const googleId = req.body.googleId
+  const event = req.body.event || null
+  const Customer = getCustomerModelByEvent(event)
+
+  try {
+    const customerData = await Customer.findOne({ googleId })
+
+    if (!customerData) {
+      return res.status(404).json(null)
+    }
+
+    const data = JSON.parse(JSON.stringify(customerData))
     data.id = data._id
+    return res.status(200).json(data)
+  } catch (error) {
+    console.error(error)
+    return res.status(400).json(error)
   }
-  console.log(data)
-  return res.status(200).json(data)
 }
 
-async function updateNotificationToken(req, res) {
+async function updateNotificationToken(req: Request, res: Response) {
   const collection = mongoose.connection.collection('secret')
 
-  // Define the query to find the document
-  const query = {
-    /* Define your query criteria here */
-  }
-
-  // Define the update operation
+  const query = {}
   const update = {
     $set: {
       adminNotificationToken: req.body.token,
     },
   }
-
-  // Options for the update
   const options = { upsert: true }
 
   try {
     const result = await collection.updateOne(query, update, options)
-
-    if (result.upsertedCount === 1) {
-      // The document was inserted
-      return res.status(201).json('Token created successfully')
-    } else {
-      // The document was updated
-      return res.status(200).json('Token updated successfully')
-    }
+    const message =
+      result.upsertedCount === 1
+        ? 'Token created successfully'
+        : 'Token updated successfully'
+    return res.status(result.upsertedCount === 1 ? 201 : 200).json(message)
   } catch (error) {
     console.error(error)
     return res.status(400).json(error)
@@ -86,8 +87,9 @@ async function getNotificationToken(req: Request, res: Response) {
     )
 
     if (document) {
-      const adminNotificationToken = document.adminNotificationToken
-      return res.status(200).json({ adminNotificationToken })
+      return res
+        .status(200)
+        .json({ adminNotificationToken: document.adminNotificationToken })
     } else {
       return res.status(404).json('Token not found')
     }
@@ -98,9 +100,12 @@ async function getNotificationToken(req: Request, res: Response) {
 }
 
 async function getAllUsers(req: Request, res: Response) {
+  const event = req.query.event?.toString() || null
+  const Customer = getCustomerModelByEvent(event)
+
   try {
-    const customerData: Model<any>[] = await Customer.find()
-    
+    const customerData = await Customer.find()
+
     const customerListJson = JSON.parse(JSON.stringify(customerData))
     customerListJson.forEach((customer) => {
       customer.id = customer._id
@@ -113,10 +118,76 @@ async function getAllUsers(req: Request, res: Response) {
   }
 }
 
+async function sendAdminNotification(req: Request, res: Response) {
+  const { title, body, data } = req.body
+  const serviceAccountPath = path.join(__dirname, '../../service-account.json') // update path
+  const projectId = 'mgmt-400909' // update this
+
+  try {
+    const collection = mongoose.connection.collection('secret')
+    const document = await collection.findOne(
+      {},
+      { projection: { adminNotificationToken: 1 } },
+    )
+    console.log(document)
+
+    if (!document || !document.adminNotificationToken) {
+      return res.status(404).json({ message: 'Notification token not found' })
+    }
+
+    // Get access token using Google Auth
+    const auth = new GoogleAuth({
+      keyFile: serviceAccountPath,
+      scopes: ['https://www.googleapis.com/auth/firebase.messaging'],
+    })
+    const client = await auth.getClient()
+    const accessToken = await client.getAccessToken()
+
+    const messagePayload = {
+      message: {
+        token: document.adminNotificationToken,
+        notification: {
+          title,
+          body,
+        },
+        data: data || {},
+      },
+    }
+
+    const response = await fetch(
+      `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken.token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(messagePayload),
+      },
+    )
+
+    const responseBody = await response.json()
+
+    if (!response.ok) {
+      return res
+        .status(500)
+        .json({ message: 'Failed to send notification', error: responseBody })
+    }
+
+    return res
+      .status(200)
+      .json({ message: 'Notification sent', response: responseBody })
+  } catch (error) {
+    console.error('Error sending notification:', error)
+    return res.status(500).json({ message: 'Internal server error', error })
+  }
+}
+
 export const auth = {
   addUser: addCustomer,
   isUserExist: isUserExist,
   updateNotificationToken: updateNotificationToken,
   getNotificationToken: getNotificationToken,
   getAllUsers: getAllUsers,
+  sendAdminNotification: sendAdminNotification,
 }

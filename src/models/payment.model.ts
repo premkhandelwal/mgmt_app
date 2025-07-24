@@ -1,4 +1,4 @@
-import { Mongoose } from "mongoose"
+import { Mongoose } from 'mongoose'
 
 module.exports = (mongoose: Mongoose, Schema) => {
   const paymentSchema = Schema({
@@ -19,7 +19,22 @@ module.exports = (mongoose: Mongoose, Schema) => {
     paidFor: {
       type: mongoose.Schema.Types.String,
     },
+    event: {
+      type: String,
+      enum: ['mahi_wedding', 'housewarming', 'birthday'],
+      default: undefined,
+    },
   })
-  const payment = mongoose.model('payment', paymentSchema)
-  return payment
+
+  const getPaymentModelByEvent = (eventName?: string) => {
+    const baseCollection = 'payments'
+    const collectionName = eventName ? `${baseCollection}_${eventName}` : baseCollection
+
+    return (
+      mongoose.models[collectionName] ||
+      mongoose.model(collectionName, paymentSchema, collectionName)
+    )
+  }
+
+  return { getPaymentModelByEvent }
 }
