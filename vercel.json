@@ -1,21 +1,16 @@
 {
-  "version": 2,
-  "buildCommand": "expo export -p web && sed -i 's/\"type\": \"module\"/\"type\": \"commonjs\"/' package.json",
-  "builds": [
-    {
-      "src": "/src/index.ts",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/src/routes/index.ts"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/",
-      "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
-    }
-  ]
+    "version": 2,
+    "builds": [
+        {
+            "src": "dist/index.js",
+            "use": "@vercel/node",
+            "config": { "includeFiles": ["dist/**"] }
+        }
+    ],
+    "routes": [
+        {
+            "src": "/(.*)",
+            "dest": "dist/index.js"
+        }
+    ]
 }
