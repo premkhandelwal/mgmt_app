@@ -3,14 +3,14 @@
   "buildCommand": "expo export -p web && sed -i 's/\"type\": \"module\"/\"type\": \"commonjs\"/' package.json",
   "builds": [
     {
-      "src": "api/index.ts",
+      "src": "/src/api/index.ts",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/api/$1"
+      "dest": "/src/routes/index.ts"
     },
     {
       "src": "/(.*)",
