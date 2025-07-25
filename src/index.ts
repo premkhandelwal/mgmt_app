@@ -1,8 +1,7 @@
 import express, { Application } from "express";
-const cors = require("cors");
-const routes = require("./routes/index");
-const mongoose = require("mongoose");
-require("dotenv").config();
+import cors from "cors";
+import routes from "./routes/index";
+import mongoose from "mongoose";
 
 const app: Application = express();
 
@@ -15,8 +14,6 @@ app.use(cors());
 
 mongoose
   .connect(process.env.MONGO_URL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
   })
   .then(() => {
     console.log("Connected to Database");
@@ -25,7 +22,6 @@ mongoose
     console.log("Mongoose Connection failed Error => ", er);
   });
 
-const port = process.env.PORT || 8080;
 
 
 
