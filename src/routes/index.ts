@@ -15,4 +15,4 @@ router.get('/', (_req: Request, res: Response) => {
 router.use('/addDetails', infoRoute);
 router.use('/auth', loginRoute);
 
-export default router;
+module.exports = router;

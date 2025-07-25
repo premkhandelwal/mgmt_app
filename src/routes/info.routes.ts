@@ -9,4 +9,4 @@ router.post('/addPayment', info.addPayment)
 
 router.get('/fetchPayments', info.fetchPayments)
 
-export default router
+module.exports = router;

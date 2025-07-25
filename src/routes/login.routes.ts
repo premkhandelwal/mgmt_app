@@ -23,4 +23,4 @@ router.get('/getAllUsers', auth.getAllUsers)
 
 router.post('/sendAdminNotification', auth.sendAdminNotification)
 router.post('/getNotificationToken', auth.getNotificationToken)
-export default router
+module.exports = router;
