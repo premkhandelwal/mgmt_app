@@ -1,7 +1,7 @@
 // src/routes/index.ts
 import { Request, Response, Router } from 'express';
-import loginRoute from './login.routes';
-import infoRoute from './info.routes';
+const loginRoute = require('./login.routes');
+const infoRoute = require('./info.routes');
 
 const router: Router = Router();
 
