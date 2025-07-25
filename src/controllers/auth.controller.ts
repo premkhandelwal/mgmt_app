@@ -120,9 +120,16 @@ async function getAllUsers(req: Request, res: Response) {
 
 async function sendAdminNotification(req: Request, res: Response) {
   const { title, body, data } = req.body
-  const serviceAccountPath = path.join(__dirname, '../service-account.json') // update path
-  const projectId = 'mgmt-400909' // update this
 
+  const projectId = 'mgmt-400909' // update this
+const serviceAccount = {
+  type: process.env.FIREBASE_TYPE,
+  project_id: process.env.FIREBASE_PROJECT_ID,
+  private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
+  private_key: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'), // handle newline chars
+  client_email: process.env.FIREBASE_CLIENT_EMAIL,
+  client_id: process.env.FIREBASE_CLIENT_ID
+};
   try {
     
     const collection = mongoose.connection.collection('secret')
@@ -138,7 +145,7 @@ async function sendAdminNotification(req: Request, res: Response) {
 
     // Get access token using Google Auth
     const auth = new GoogleAuth({
-      keyFile: serviceAccountPath,
+      credentials: serviceAccount,
       scopes: ['https://www.googleapis.com/auth/firebase.messaging'],
     })
     const client = await auth.getClient()
