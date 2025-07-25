@@ -1,6 +1,6 @@
 import express, { Application } from "express";
 const cors = require("cors");
-const routes = require("./src/routes/index");
+const routes = require("./routes/index");
 const mongoose = require("mongoose");
 require("dotenv").config();
 
@@ -20,9 +20,6 @@ mongoose
   })
   .then(() => {
     console.log("Connected to Database");
-    app.listen(port, () => {
-      console.log("Listening on port " + port);
-  });
   })
   .catch((er) => {
     console.log("Mongoose Connection failed Error => ", er);
