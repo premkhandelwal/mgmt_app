@@ -120,10 +120,11 @@ async function getAllUsers(req: Request, res: Response) {
 
 async function sendAdminNotification(req: Request, res: Response) {
   const { title, body, data } = req.body
-  const serviceAccountPath = path.join(__dirname, '../../service-account.json') // update path
+  const serviceAccountPath = path.join(__dirname, '../service-account.json') // update path
   const projectId = 'mgmt-400909' // update this
 
   try {
+    
     const collection = mongoose.connection.collection('secret')
     const document = await collection.findOne(
       {},
