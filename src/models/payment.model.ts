@@ -24,6 +24,16 @@ module.exports = (mongoose: Mongoose, Schema) => {
       enum: ['mahi_wedding', 'housewarming', 'birthday'],
       default: undefined,
     },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+    updatedOn: {
+      type: Date,
+    },
+    updatedBy: {
+      type: String,
+    },
   })
 
   const getPaymentModelByEvent = (eventName?: string) => {

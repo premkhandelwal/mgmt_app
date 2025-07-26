@@ -17,7 +17,14 @@ async function addPayment(req: Request, res: Response) {
     const PaymentModel = getPaymentModelByEvent(event)
     const uniqueId = await generateUniqueId(PaymentModel)
 
-    const paymentData = { ...req.body, renterLinkId: uniqueId }
+    const paymentData = {
+      ...req.body,
+      renterLinkId: uniqueId,
+      isDeleted: false,
+      updatedOn: new Date(),
+      updatedBy: req.body.updatedBy || 'system',
+    }
+
     const payment = new PaymentModel(paymentData)
     const savedInfo = await payment.save()
 
@@ -28,14 +35,40 @@ async function addPayment(req: Request, res: Response) {
   }
 }
 
+async function deletePayment(req: Request, res: Response) {
+  try {
+    const { id } = req.params
+    const event = req.body.event || null
+    const updatedBy = req.body.updatedBy || 'system'
+    const PaymentModel = getPaymentModelByEvent(event)
+
+    const updated = await PaymentModel.findByIdAndUpdate(
+      id,
+      {
+        isDeleted: true,
+        updatedOn: new Date(),
+        updatedBy: updatedBy,
+      },
+      { new: true }
+    )
+
+    if (!updated) {
+      return res.status(404).json({ error: 'Payment not found' })
+    }
+
+    res.json({ message: 'Payment soft deleted', data: updated })
+  } catch (error) {
+    console.error('Delete error:', error)
+    res.status(500).json({ error: 'Failed to delete payment' })
+  }
+}
+
 async function fetchPayments(req: Request, res: Response) {
   try {
     const event = req.query.event?.toString() || null
-    console.log(event);
-    
     const PaymentModel = getPaymentModelByEvent(event)
 
-    const Payments = await PaymentModel.find({})
+    const Payments = await PaymentModel.find({ isDeleted: false })
     res.status(200).json(Payments)
   } catch (error) {
     res.status(401).json(error)
@@ -45,4 +78,5 @@ async function fetchPayments(req: Request, res: Response) {
 export const info = {
   addPayment,
   fetchPayments,
+  deletePayment,
 }
