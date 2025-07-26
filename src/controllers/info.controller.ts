@@ -67,7 +67,6 @@ async function fetchPayments(req: Request, res: Response) {
   try {
     const event = req.query.event?.toString() || null
     const PaymentModel = getPaymentModelByEvent(event)
-
     const Payments = await PaymentModel.find({ isDeleted: false })
     res.status(200).json(Payments)
   } catch (error) {
