@@ -37,11 +37,16 @@ async function addPayment(req: Request, res: Response) {
 
 async function deletePayment(req: Request, res: Response) {
   try {
+    console.log('====================================');
+    console.log('req.body:', req.body);
+    console.log('====================================');
     const id = req.body.id || null
     const event = req.body.event || null
     const updatedBy = req.body.updatedBy || 'system'
     const PaymentModel = getPaymentModelByEvent(event)
-
+    console.log('====================================')
+    console.log(PaymentModel)
+    console.log('====================================')
     const updated = await PaymentModel.findByIdAndUpdate(
       id,
       {
@@ -49,10 +54,13 @@ async function deletePayment(req: Request, res: Response) {
         updatedOn: new Date(),
         updatedBy: updatedBy,
       },
-      { new: true }
+      { new: true },
     )
 
     if (!updated) {
+      console.log('====================================');
+      console.log(updated);
+      console.log('====================================');
       return res.status(404).json({ error: 'Payment not found' })
     }
 
