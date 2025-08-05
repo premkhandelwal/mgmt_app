@@ -23,7 +23,7 @@ module.exports = (mongoose: Mongoose, Schema) => {
       type: String,
       enum: ['mahi_wedding', 'housewarming', 'birthday', 'homeFurniture'],
       default: undefined,
-    },
+    }
     isDeleted: {
       type: Boolean,
       default: false,
