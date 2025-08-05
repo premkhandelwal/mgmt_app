@@ -26,7 +26,7 @@ module.exports = (mongoose, Schema) => {
     },
     event: {
       type: mongoose.Schema.Types.String,
-      enum: ['mahi_wedding', 'housewarming', 'birthday'],
+      enum: ['mahi_wedding', 'housewarming', 'birthday', 'homeFurniture'],
     },
   })
   const getCustomerModelByEvent = (eventName?: string) => {

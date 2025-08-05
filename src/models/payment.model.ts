@@ -21,7 +21,7 @@ module.exports = (mongoose: Mongoose, Schema) => {
     },
     event: {
       type: String,
-      enum: ['mahi_wedding', 'housewarming', 'birthday'],
+      enum: ['mahi_wedding', 'housewarming', 'birthday', 'homeFurniture'],
       default: undefined,
     },
     isDeleted: {
