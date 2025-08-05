@@ -37,7 +37,7 @@ async function addPayment(req: Request, res: Response) {
 
 async function deletePayment(req: Request, res: Response) {
   try {
-    const { id } = req.params
+    const id = req.body.id || null
     const event = req.body.event || null
     const updatedBy = req.body.updatedBy || 'system'
     const PaymentModel = getPaymentModelByEvent(event)
